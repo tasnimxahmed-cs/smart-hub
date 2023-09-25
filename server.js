@@ -1,12 +1,12 @@
 require('dotenv').config();
 const express = require("express");
 const app = express();
+const TuyAPI = require('tuyapi');
+const Govee = require("node-govee-led");
 
 app.set("view engine", "ejs");
 
 app.listen(3000);
-
-const TuyAPI = require('tuyapi');
 
 //LIGHT
 const light = new TuyAPI({
@@ -56,6 +56,18 @@ diffuser.on('disconnected', () => {
 diffuser.on('error', error => {
     console.log('Error with diffuser!', error);
 });
+
+const HexTiles = new Govee({
+	apiKey: process.env.GOVEE_API_KEY,
+	mac: process.env.HEX_TILES_MAC,
+	model: process.env.HEX_TILES_MODEL
+})
+
+const Sconces = new Govee({
+    apiKey: process.env.GOVEE_API_KEY,
+	mac: process.env.SCONCES_MAC,
+	model: process.env.SCONCES_MODEL
+})
 
 app.get("/", (req, res) => {
     res.render("index");
@@ -115,6 +127,42 @@ app.get("/light/:status", (req, res) => {
         
         case "on":
             light.set({dps: 20, set: true}).then((data) => console.log("Light turned on.", data));
+            break;
+        
+        default:
+            break;
+    }
+    
+    res.status(204).send();
+});
+
+app.get("/hextiles/:status", (req, res) => {
+    switch(req.params.status)
+    {
+        case "off":
+            HexTiles.turnOff().then((data) => {console.log(data, "HexTiles turned off.")});
+            break;
+        
+        case "on":
+            HexTiles.turnOn().then((data) => {console.log(data, "HexTiles turned on.")});
+            break;
+        
+        default:
+            break;
+    }
+    
+    res.status(204).send();
+});
+
+app.get("/sconces/:status", (req, res) => {
+    switch(req.params.status)
+    {
+        case "off":
+            Sconces.turnOff().then((data) => {console.log(data, "Sconces turned off.")});
+            break;
+        
+        case "on":
+            Sconces.turnOn().then((data) => {console.log(data, "Sconces turned on.")});
             break;
         
         default:
